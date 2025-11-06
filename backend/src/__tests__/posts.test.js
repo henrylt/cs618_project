@@ -2,20 +2,20 @@ import mongoose from 'mongoose'
 import { describe, expect, test, beforeEach, beforeAll } from '@jest/globals'
 import { createUser } from '../services/users.js'
 import {
-  createPost,
-  listAllPosts,
-  listPostsByAuthor,
-  listPostsByTag,
-  getPostById,
-  updatePost,
-  deletePost,
-} from '../services/posts.js'
-import { Post } from '../db/models/post.js'
+  createRecipe,
+  listAllRecipes,
+  listRecipesByAuthor,
+  listRecipesByTag,
+  getRecipeById,
+  updateRecipe,
+  deleteRecipe,
+} from '../services/recipes.js'
+import { Recipe } from '../db/models/recipe.js'
 let testUser = null
-let samplePosts = []
+let sampleRecipes = []
 beforeAll(async () => {
   testUser = await createUser({ username: 'sample', password: 'user' })
-  samplePosts = [
+  sampleRecipes = [
     { title: 'Learning Redux', author: testUser._id, tags: ['redux'] },
     { title: 'Learn React Hooks', author: testUser._id, tags: ['react'] },
     {
@@ -26,134 +26,138 @@ beforeAll(async () => {
   ]
 })
 
-let createdSamplePosts = []
+let createdSampleRecipes = []
 beforeEach(async () => {
-  await Post.deleteMany({})
-  createdSamplePosts = []
-  for (const post of samplePosts) {
-    const createdPost = new Post(post)
-    createdSamplePosts.push(await createdPost.save())
+  await Recipe.deleteMany({})
+  createdSampleRecipes = []
+  for (const recipe of sampleRecipes) {
+    const createdRecipe = new Recipe(recipe)
+    createdSampleRecipes.push(await createdRecipe.save())
   }
 })
-describe('getting a post', () => {
-  test('should return the full post', async () => {
-    const post = await getPostById(createdSamplePosts[0]._id)
-    expect(post.toObject()).toEqual(createdSamplePosts[0].toObject())
+describe('getting a recipe', () => {
+  test('should return the full recipe', async () => {
+    const recipe = await getRecipeById(createdSampleRecipes[0]._id)
+    expect(recipe.toObject()).toEqual(createdSampleRecipes[0].toObject())
   })
   test('should fail if the id does not exist', async () => {
-    const post = await getPostById('000000000000000000000000')
-    expect(post).toEqual(null)
+    const recipe = await getRecipeById('000000000000000000000000')
+    expect(recipe).toEqual(null)
   })
 })
-describe('updating posts', () => {
+describe('updating recipes', () => {
   test('should update the specified property', async () => {
-    await updatePost(testUser._id, createdSamplePosts[0]._id, {
-      contents: 'some updated contents',
+    await updateRecipe(testUser._id, createdSampleRecipes[0]._id, {
+      ingredients: ['some updated ingredients'],
     })
-    const updatedPost = await Post.findById(createdSamplePosts[0]._id)
-    expect(updatedPost.contents).toEqual('some updated contents')
+    const updatedRecipe = await Recipe.findById(createdSampleRecipes[0]._id)
+    expect(updatedRecipe.ingredients).toEqual(['some updated ingredients'])
   })
   test('should not update other properties', async () => {
-    await updatePost(testUser._id, createdSamplePosts[0]._id, {
-      contents: 'some updated contents',
+    await updateRecipe(testUser._id, createdSampleRecipes[0]._id, {
+      ingredients: 'some updated ingredients',
     })
-    const updatedPost = await Post.findById(createdSamplePosts[0]._id)
-    expect(updatedPost.title).toEqual('Learning Redux')
+    const updatedRecipe = await Recipe.findById(createdSampleRecipes[0]._id)
+    expect(updatedRecipe.title).toEqual('Learning Redux')
   })
   test('should update the updatedAt timestamp', async () => {
-    await updatePost(testUser._id, createdSamplePosts[0]._id, {
-      contents: 'some updated contents',
+    await updateRecipe(testUser._id, createdSampleRecipes[0]._id, {
+      ingredients: 'some updated ingredients',
     })
-    const updatedPost = await Post.findById(createdSamplePosts[0]._id)
-    expect(updatedPost.updatedAt.getTime()).toBeGreaterThan(
-      createdSamplePosts[0].updatedAt.getTime(),
+    const updatedRecipe = await Recipe.findById(createdSampleRecipes[0]._id)
+    expect(updatedRecipe.updatedAt.getTime()).toBeGreaterThan(
+      createdSampleRecipes[0].updatedAt.getTime(),
     )
   })
   test('should fail if the id does not exist', async () => {
-    const post = await updatePost(testUser._id, '000000000000000000000000', {
-      contents: 'some updated contents',
-    })
-    expect(post).toEqual(null)
+    const recipe = await updateRecipe(
+      testUser._id,
+      '000000000000000000000000',
+      {
+        ingredients: 'some updated ingredients',
+      },
+    )
+    expect(recipe).toEqual(null)
   })
 })
-describe('deleting posts', () => {
-  test('should remove the post from the database', async () => {
-    const result = await deletePost(testUser._id, createdSamplePosts[0]._id)
+describe('deleting recipes', () => {
+  test('should remove the recipe from the database', async () => {
+    const result = await deleteRecipe(testUser._id, createdSampleRecipes[0]._id)
     expect(result.deletedCount).toEqual(1)
-    const deletedPost = await Post.findById(createdSamplePosts[0]._id)
-    expect(deletedPost).toEqual(null)
+    const deletedRecipe = await Recipe.findById(createdSampleRecipes[0]._id)
+    expect(deletedRecipe).toEqual(null)
   })
   test('should fail if the id does not exist', async () => {
-    const result = await deletePost('000000000000000000000000')
+    const result = await deleteRecipe('000000000000000000000000')
     expect(result.deletedCount).toEqual(0)
   })
 })
-describe('listing posts', () => {
-  test('should return all posts', async () => {
-    const posts = await listAllPosts()
-    expect(posts.length).toEqual(createdSamplePosts.length)
+describe('listing recipes', () => {
+  test('should return all recipes', async () => {
+    const recipes = await listAllRecipes()
+    expect(recipes.length).toEqual(createdSampleRecipes.length)
   })
-  test('should return posts sorted by creation date descending by default', async () => {
-    const posts = await listAllPosts()
-    const sortedSamplePosts = createdSamplePosts.sort(
+  test('should return recipes sorted by creation date descending by default', async () => {
+    const recipes = await listAllRecipes()
+    const sortedSampleRecipes = createdSampleRecipes.sort(
       (a, b) => b.createdAt - a.createdAt,
     )
-    expect(posts.map((post) => post.createdAt)).toEqual(
-      sortedSamplePosts.map((post) => post.createdAt),
+    expect(recipes.map((recipe) => recipe.createdAt)).toEqual(
+      sortedSampleRecipes.map((recipe) => recipe.createdAt),
     )
   })
   test('should take into account provided sorting options', async () => {
-    const posts = await listAllPosts({
+    const recipes = await listAllRecipes({
       sortBy: 'updatedAt',
       sortOrder: 'ascending',
     })
-    const sortedSamplePosts = createdSamplePosts.sort(
+    const sortedSampleRecipes = createdSampleRecipes.sort(
       (a, b) => a.updatedAt - b.updatedAt,
     )
-    expect(posts.map((post) => post.updatedAt)).toEqual(
-      sortedSamplePosts.map((post) => post.updatedAt),
+    expect(recipes.map((recipe) => recipe.updatedAt)).toEqual(
+      sortedSampleRecipes.map((recipe) => recipe.updatedAt),
     )
   })
-  test('should be able to filter posts by author', async () => {
-    const posts = await listPostsByAuthor(testUser.username)
-    expect(posts.length).toBe(3)
+  test('should be able to filter recipes by author', async () => {
+    const recipes = await listRecipesByAuthor(testUser.username)
+    expect(recipes.length).toBe(3)
   })
-  test('should be able to filter posts by tag', async () => {
-    const posts = await listPostsByTag('nodejs')
-    expect(posts.length).toBe(1)
+  test('should be able to filter recipes by tag', async () => {
+    const recipes = await listRecipesByTag('nodejs')
+    expect(recipes.length).toBe(1)
   })
 })
-describe('creating posts', () => {
+describe('creating recipes', () => {
   test('with all parameters should succeed', async () => {
-    const post = {
+    const recipe = {
       title: 'Hello Mongoose!',
-      contents: 'This post is stored in a MongoDB database using Mongoose.',
+      ingredients: ['egg', 'sugar', 'salt', 'beef'],
       tags: ['mongoose', 'mongodb'],
     }
-    const createdPost = await createPost(testUser._id, post)
-    expect(createdPost._id).toBeInstanceOf(mongoose.Types.ObjectId)
-    const foundPost = await Post.findById(createdPost._id)
-    expect(foundPost).toEqual(expect.objectContaining(post))
-    expect(foundPost.createdAt).toBeInstanceOf(Date)
-    expect(foundPost.updatedAt).toBeInstanceOf(Date)
+    const createdRecipe = await createRecipe(testUser._id, recipe)
+    expect(createdRecipe._id).toBeInstanceOf(mongoose.Types.ObjectId)
+    const foundRecipe = await Recipe.findById(createdRecipe._id)
+    expect(foundRecipe).toEqual(expect.objectContaining(recipe))
+    expect(foundRecipe.createdAt).toBeInstanceOf(Date)
+    expect(foundRecipe.updatedAt).toBeInstanceOf(Date)
   })
   test('without title should fail', async () => {
-    const post = {
-      contents: 'Post with no title',
+    const recipe = {
+      ingredients: ['egg', 'sugar', 'salt', 'beef'],
       tags: ['empty'],
     }
     try {
-      await createPost(testUser._id, post)
+      await createRecipe(testUser._id, recipe)
     } catch (err) {
       expect(err).toBeInstanceOf(mongoose.Error.ValidationError)
       expect(err.message).toContain('`title` is required')
     }
   })
   test('with minimal parameters should succeed', async () => {
-    const post = {
+    const recipe = {
       title: 'Only a title',
     }
-    const createdPost = await createPost(testUser._id, post)
-    expect(createdPost._id).toBeInstanceOf(mongoose.Types.ObjectId)
+    const createdRecipe = await createRecipe(testUser._id, recipe)
+    expect(createdRecipe._id).toBeInstanceOf(mongoose.Types.ObjectId)
   })
 })
