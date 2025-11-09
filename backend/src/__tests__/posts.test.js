@@ -48,10 +48,10 @@ describe('getting a recipe', () => {
 describe('updating recipes', () => {
   test('should update the specified property', async () => {
     await updateRecipe(testUser._id, createdSampleRecipes[0]._id, {
-      ingredients: ['some updated ingredients'],
+      ingredients: 'some updated ingredients',
     })
     const updatedRecipe = await Recipe.findById(createdSampleRecipes[0]._id)
-    expect(updatedRecipe.ingredients).toEqual(['some updated ingredients'])
+    expect(updatedRecipe.ingredients).toEqual('some updated ingredients')
   })
   test('should not update other properties', async () => {
     await updateRecipe(testUser._id, createdSampleRecipes[0]._id, {
@@ -131,7 +131,7 @@ describe('creating recipes', () => {
   test('with all parameters should succeed', async () => {
     const recipe = {
       title: 'Hello Mongoose!',
-      ingredients: ['egg', 'sugar', 'salt', 'beef'],
+      ingredients: 'egg, sugar, salt, beef',
       tags: ['mongoose', 'mongodb'],
     }
     const createdRecipe = await createRecipe(testUser._id, recipe)
@@ -143,7 +143,7 @@ describe('creating recipes', () => {
   })
   test('without title should fail', async () => {
     const recipe = {
-      ingredients: ['egg', 'sugar', 'salt', 'beef'],
+      ingredients: 'egg, sugar, salt, beef',
       tags: ['empty'],
     }
     try {
